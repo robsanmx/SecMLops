@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mlflow:
+    build: .
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+      - ./data:/app/data
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/app/mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow.db --default-artifact-root /app/mlruns
+  
+  workshop:
+    build: .
+    depends_on:
+      - mlflow
+    volumes:
+      - ./mlruns:/app/mlruns
+      - ./data:/app/data
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    command: python workshop.py
